@@ -17,11 +17,11 @@
 	<li>The application supports options (Option, usage Meaning):
 		
 <ul>
-	<li>-i file-name, <em>Use a file with the name file-name as an input</em>.</li>
-	<li>-o file-name, Use a file with the name file-name as an output.</li>
-	<li>-h The first, line is a header that must be ignored during sorting but included in the output.</li>
-	<li>-f N, Sort input lines by value number N.</li>
-	<li>-r, Sort input lines in reverse order.</li>
+	<li><strong>-i file-name</strong>, <em>Use a file with the name file-name as an input</em>.</li>
+	<li><strong>-o file-name</strong>, <em>Use a file with the name file-name as an output</em>.</li>
+	<li><strong>-h The first</strong>, <em>line is a header that must be ignored during sorting but included in the output</em>.</li>
+	<li><strong>-f N</strong>, <em>Sort input lines by value number N</em>.</li>
+	<li><strong>-r</strong>, <em>Sort input lines in reverse order</em>.</li>
 		</ul>
 	</li>	
 			
