@@ -29,4 +29,4 @@
 </ol>	
 	
 
-**[Contact Telegram](https://t.me/kirilodm67)**
+**[Contact with me](https://t.me/kirilodm67)**
