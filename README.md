@@ -4,15 +4,13 @@
 **“CSV Sorter” is a CLI application that allows sorting of its input presented as CSV-text.**
 <p text-align = "center"> **Technical details** </p>
 	Required features:
-	*
-	<ul>
+	*<ul>
 	<li>The application runs as a CLI application.</li> 
 	<li>It reads STDIN line by line. The end of the input is an empty line.</li>
 	<li>Each line is a list of comma-separated values (CSV). Each value is considered as a piece of text. The number of values is the same in each line.</li>
 	<li>The application sorts all lines alphabetically by the first value in each line.</li>
 	<li>The application prints the result immediately, when the user ends to enter input text (presses <Enter> at a new line).</li>
-</ul>
-*
+</ul>*
 	Optional features (not required but appreciated):
 	[^1]The application supports options:
 		Option usage Meaning
