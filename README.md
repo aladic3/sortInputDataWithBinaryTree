@@ -1,7 +1,7 @@
 # sortInputData
 # Task1
 
-**[“CSV Sorter” is a CLI application that allows sorting of its input presented as CSV-text.]**
+**(“CSV Sorter” is a CLI application that allows sorting of its input presented as CSV-text.)**
 <p text-align = center> **Technical details** </p>
 	Required features:
 	<ul>
