@@ -2,6 +2,7 @@
 # Task1
 
 **“CSV Sorter” is a CLI application that allows sorting of its input presented as CSV-text.**
+
 **Technical details**
 Required features:
 <ul>
@@ -12,7 +13,7 @@ Required features:
 	<li>The application prints the result immediately, when the user ends to enter input text (presses <Enter> at a new line).</li>
 </ul>
 Optional features (not required but appreciated):
-- The application supports options:
+** The application supports options:
 Option usage Meaning
 <ul>
 	<li>-i file-name Use a file with the name file-name as an input.</li>
@@ -22,7 +23,7 @@ Option usage Meaning
 	<li>-r Sort input lines in reverse order.</li>
 </ul>			
 			
-- Add the ability to use a second algorithm for sorting - the Tree Sort algorithm. Accordingly, add one more option -a with possible values 1 or 2, which chooses currently implemented algorithm or Tree Sort algorithm to use. By default, the application uses the currently implemented algorithm.
+** Add the ability to use a second algorithm for sorting - the Tree Sort algorithm. Accordingly, add one more option -a with possible values 1 or 2, which chooses currently implemented algorithm or Tree Sort algorithm to use. By default, the application uses the currently implemented algorithm.
 	
 	
 
