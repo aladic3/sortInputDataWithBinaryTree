@@ -1,7 +1,8 @@
 # sortInputData
 # Task1
-“CSV Sorter” is a CLI application that allows sorting of its input presented as CSV-text.
-Technical details
+
+**[“CSV Sorter” is a CLI application that allows sorting of its input presented as CSV-text.]**
+<p text-align = center> **Technical details** </p>
 	Required features:
 	<ul>
 	<li>The application runs as a CLI application.</li> 
@@ -31,4 +32,4 @@ Technical details
 	
 	
 
-**[Contact telegram] (https://t.me/kirilodm67)**
+**[Contact Telegram](https://t.me/kirilodm67)**
