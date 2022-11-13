@@ -11,10 +11,11 @@
 	<li>The application sorts all lines alphabetically by the first value in each line.</li>
 	<li>The application prints the result immediately, when the user ends to enter input text (presses <Enter> at a new line).</li>
 </ul>
+
 ### Optional features (not required but appreciated):
 <ol>
-	<li>The application supports options:
-		<p>**Option, usage Meaning**</p>
+	<li>The application supports options (Option, usage Meaning):
+		
 <ul>
 	<li>-i file-name, Use a file with the name file-name as an input.</li>
 	<li>-o file-name, Use a file with the name file-name as an output.</li>
