@@ -17,7 +17,7 @@
 	<li>The application supports options (Option, usage Meaning):
 		
 <ul>
-	<li>-i file-name, *Use a file with the name file-name as an input.*</li>
+	<li>-i file-name, _Use a file with the name file-name as an input._</li>
 	<li>-o file-name, Use a file with the name file-name as an output.</li>
 	<li>-h The first, line is a header that must be ignored during sorting but included in the output.</li>
 	<li>-f N, Sort input lines by value number N.</li>
