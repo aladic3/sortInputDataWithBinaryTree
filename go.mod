@@ -1,4 +1,4 @@
-module task
+module sortInputData
 
 go 1.19
 
