@@ -15,8 +15,7 @@ Required features:
 Optional features (not required but appreciated):
 <ol>
 	<li>The application supports options:
-		
-	**Option, usage Meaning**
+**Option, usage Meaning**
 <ul>
 	<li>-i file-name, Use a file with the name file-name as an input.</li>
 	<li>-o file-name, Use a file with the name file-name as an output.</li>
