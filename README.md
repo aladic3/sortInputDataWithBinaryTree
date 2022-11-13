@@ -2,8 +2,8 @@
 
 **“CSV Sorter” is a CLI application that allows sorting of its input presented as CSV-text.**
 
-# Technical details
-## Required features:
+## Technical details
+### Required features:
 <ul>
 	<li>The application runs as a CLI application.</li> 
 	<li>It reads STDIN line by line. The end of the input is an empty line.</li>
@@ -17,7 +17,7 @@
 	<li>The application supports options (Option, usage Meaning):
 		
 <ul>
-	<li>-i file-name, Use a file with the name file-name as an input.</li>
+	<li>-i file-name, *Use a file with the name file-name as an input.*</li>
 	<li>-o file-name, Use a file with the name file-name as an output.</li>
 	<li>-h The first, line is a header that must be ignored during sorting but included in the output.</li>
 	<li>-f N, Sort input lines by value number N.</li>
