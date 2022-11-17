@@ -3,7 +3,6 @@ package functions
 import (
 	"ClassTree"
 	"bufio"
-	"fmt"
 	"log"
 	"os"
 	"sort"
@@ -11,77 +10,109 @@ import (
 	"syscall"
 )
 
-func InputDataToTree(
-	sortNumber int, isHead bool,
-	isInputFromFile, isOutputToFile, isReverse bool,
-	nameInputFile, nameOutputFile string) *ClassTree.TopBinaryTree {
-	var (
-		inputStr      string
-		n             int
-		oneLine       []string
-		err           error
-		inputHeadNode ClassTree.TopBinaryTree
-		inputTree     = new(ClassTree.TopBinaryTree)
-		scanner       *bufio.Scanner
-		// out           *os.File
-	)
+func CheckFlags(isHead, isInputFromFile, isOutputToFile, isInputWithTree bool,
+	nameInputFile, nameOutputFile string,
+	inputHeadNode, inputTree *ClassTree.TopBinaryTree) (func([]string, int), bool, *bufio.Scanner) {
+
+	var err error
+	var returnFunc func([]string, int)
+	var result bool
+	var scanner *bufio.Scanner
 
 	//############
 	// check flags
 	if isInputFromFile { //input from file
+		findCSV := strings.Split(nameInputFile, ".")
+		if findCSV[len(findCSV)-1] != "csv" &&
+			findCSV[len(findCSV)-1] != "CSV" {
+			log.Fatalf("Input file name must be .csv!")
+		}
+
 		os.Stdin, err = os.Open(nameInputFile)
-
-		defer func() { // close input file and set standard os.Stdin
-			err = os.Stdin.Close()
-			if err != nil {
-				log.Fatal(err)
-			}
-			os.Stdin = os.NewFile(uintptr(syscall.Stdin), "/dev/stdin")
-		}()
-
 		if err != nil {
 			log.Fatalln(err.Error())
 		}
-		scanner = bufio.NewScanner(os.Stdin)
+
 	} else {
 		//input from console
-		os.Stdout.Write([]byte("Enter data:\n"))
-		scanner = bufio.NewScanner(os.Stdin)
+		_, err = os.Stdout.Write([]byte("Enter data:\n"))
+		if err != nil {
+			log.Fatalln(err.Error())
+		}
 	}
+	scanner = bufio.NewScanner(os.Stdin)
+
 	if isOutputToFile {
+		findCSV := strings.Split(nameOutputFile, ".")
+		if findCSV[len(findCSV)-1] != "csv" &&
+			findCSV[len(findCSV)-1] != "CSV" {
+			log.Fatalf("Output file name must be .csv!")
+		}
+
 		os.Stdout, err = os.Create(nameOutputFile)
-
-		defer func() { // close output file and set standard os.Stdout
-			os.Stdout.Close()
-			os.Stdout = os.NewFile(uintptr(syscall.Stdout), "/dev/stdout")
-			//out = os.NewFile(uintptr(syscall.Stdout), "/dev/stdout")
-		}()
-
 		if err != nil {
 			log.Fatalln(err.Error())
 		}
 
 	}
 
-	if isHead {
+	if isHead && isInputWithTree {
 
 		scanner.Scan()
 		if scanner.Err() != nil {
 			log.Fatal(scanner.Err())
 		}
-		headNode := func() {
-			inputHeadNode.BinaryNode = new(ClassTree.BinaryTree)
-			initHeadNode := inputHeadNode.InitTree(inputHeadNode.BinaryNode)
+		func() {
+			initHeadNode := inputHeadNode.InitTree()
 			initHeadNode(strings.Split(scanner.Text(), ","), 0)
 
-		}
-		headNode()
+		}()
+
 	}
 	//#########################
+	if isInputWithTree {
+		initTree := inputTree.InitTree()
+		returnFunc = initTree
+		result = true
 
-	inputTree.BinaryNode = new(ClassTree.BinaryTree)
-	inputTree.HeadNode = inputTree.BinaryNode
-	initBranch := inputTree.InitTree(inputTree.BinaryNode)
+	}
+
+	return returnFunc, result, scanner
+}
+
+func InputtingData(
+	sortNumber int,
+	isHead, isInputFromFile, isOutputToFile, isReverse, isInputWithTree bool,
+	nameInputFile, nameOutputFile string) *ClassTree.TopBinaryTree {
+	var (
+		inputStr      string
+		n             int
+		oneLine       []string
+		arrayLines    [][]string
+		inputHeadNode = new(ClassTree.TopBinaryTree)
+		inputTree     = new(ClassTree.TopBinaryTree)
+		err           error
+	)
+
+	initBranch, isBranchInput, scanner := CheckFlags(isHead, isInputFromFile, isOutputToFile, isInputWithTree,
+		nameInputFile, nameOutputFile,
+		inputHeadNode, inputTree)
+
+	defer func() { // close input file and set standard os.Stdin
+		err = os.Stdin.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+		os.Stdin = os.NewFile(uintptr(syscall.Stdin), "/dev/stdin")
+	}()
+	defer func() { // close output file and set standard os.Stdout
+		err = os.Stdout.Close()
+		if err != nil {
+			log.Fatalln(err.Error())
+		}
+		os.Stdout = os.NewFile(uintptr(syscall.Stdout), "/dev/stdout")
+
+	}()
 
 	//################
 	// inputting data
@@ -103,92 +134,38 @@ func InputDataToTree(
 		}
 		n = len(oneLine)
 
-		initBranch(oneLine, sortNumber)
+		// inputting data
+		if isBranchInput {
+			initBranch(oneLine, sortNumber)
+		} else {
+			arrayLines = append(arrayLines, oneLine)
+		}
 
 	}
 	//___________
 
 	//#######################
 	// write sorted date to Stdout
-	if inputHeadNode.BinaryNode != nil {
-		inputHeadNode.WriteOnlyInTree(inputHeadNode.BinaryNode, isReverse, true, os.Stdout)
+	if isBranchInput {
+		if inputHeadNode.BinaryNode != nil {
+			inputHeadNode.WriteOnlyInTree(inputHeadNode.BinaryNode, isReverse, true, os.Stdout)
+		}
+		inputTree.WriteOnlyInTree(inputTree.BinaryNode, isReverse, false, os.Stdout)
+
 	}
-	inputTree.WriteOnlyInTree(inputTree.BinaryNode, isReverse, false, os.Stdout)
-	//_________
+	if !isBranchInput {
+		arrayLines = SortArray(isHead, isReverse, sortNumber, arrayLines)
+		for i := 0; i < len(arrayLines); i++ {
+			_, err = os.Stdout.Write([]byte(inputTree.BinaryNode.StringifyData(arrayLines[i])))
+			if err != nil {
+				log.Fatalln(err.Error())
+			}
+		}
+		inputTree = nil
+	}
 	return inputTree
-
 }
 
-func InputFromFile(inputFileName string, sortNumber int) [][]string {
-	var (
-		inputStr   string
-		n          int
-		arrayLines [][]string
-	)
-
-	f, err := os.Open(inputFileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	scanner := bufio.NewScanner(f)
-
-	for scanner.Scan() {
-		inputStr = scanner.Text()
-
-		if scanner.Err() != nil {
-			log.Fatalf("Error of input! Err: %v", scanner.Err())
-		}
-
-		arrayStr := strings.Split(inputStr, ",")
-
-		if (n != 0 && n != len(arrayStr)) || len(arrayStr)-1 < sortNumber {
-			log.Fatalln("Error of count values!")
-		}
-		n = len(arrayStr)
-
-		arrayLines = append(arrayLines, arrayStr)
-	}
-
-	return arrayLines
-}
-
-func WriteToFile(fileName string, arrayLines [][]string) {
-	f, err := os.Create(fileName)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer f.Close()
-
-	for _, line := range arrayLines {
-		countElements := len(line)
-		for i, el := range line {
-			str := el
-			if i < (countElements - 1) {
-				str += ","
-			}
-			f.WriteString(str)
-		}
-		f.WriteString("\n")
-	}
-}
-func WriteToConsole(arrayLines [][]string) {
-	for _, line := range arrayLines {
-		countElements := len(line)
-		for i, el := range line {
-			if i < (countElements - 1) {
-				fmt.Printf("%s,", el)
-			} else {
-				fmt.Println(el)
-			}
-
-		}
-
-	}
-}
 func SortArray(isFirstHeader, isReverse bool, sortNumber int, array [][]string) [][]string {
 
 	var sortingArray [][]string
@@ -213,40 +190,3 @@ func SortArray(isFirstHeader, isReverse bool, sortNumber int, array [][]string) 
 
 	return copyOfArray
 }
-
-/*
-func SortBinTreeArray(isFirstHeader, isReverse bool, sortNumber int, array [][]string) [][]string {
-
-	var sortingArray [][]string
-	copyOfArray := make([][]string, len(array))
-	copy(copyOfArray, array)
-
-	if isFirstHeader {
-		sortingArray = copyOfArray[1:]
-	} else {
-		sortingArray = copyOfArray
-	}
-
-	dataTree := new(ClassTree.TopBinaryTree)
-	dataTree.HeadNode = new(ClassTree.BinaryTree)
-	dataTree.BinaryNode = dataTree.HeadNode
-
-	addNodeToTree := dataTree.InitTree(dataTree.HeadNode)
-
-	for _, el := range sortingArray {
-		addNodeToTree(el, sortNumber)
-	}
-
-	arrayStr := dataTree.WriteSorted(dataTree.HeadNode, isReverse, [][]string{})
-
-	if isFirstHeader {
-		for i := 1; i < len(copyOfArray); i++ {
-			copyOfArray[i] = arrayStr[i-1]
-		}
-	} else {
-		copyOfArray = arrayStr
-	}
-
-	return copyOfArray
-}
-*/

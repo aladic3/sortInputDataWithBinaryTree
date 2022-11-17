@@ -16,11 +16,20 @@ type BinaryTree struct {
 	HeadNode *BinaryTree
 }
 
-func (Tree *BinaryTree) StringifyData() string {
+func (Tree *BinaryTree) StringifyData(data []string) string {
 	var line string
-	countElements := len(Tree.data)
+	var countElements int
+	var sfyData []string
+	if data == nil {
+		countElements = len(Tree.data)
+		sfyData = Tree.data
+	} else {
+		countElements = len(data)
+		sfyData = data
+	}
+
 	for i := 0; i < countElements; i++ {
-		line += Tree.data[i]
+		line += sfyData[i]
 		if i < (countElements - 1) {
 			line += ","
 		}
@@ -30,30 +39,30 @@ func (Tree *BinaryTree) StringifyData() string {
 	return line
 }
 
-func (ThisTree *TopBinaryTree) InitTree(
-	rootNode *BinaryTree) func(
-	data []string, column int) *BinaryTree {
+func (ThisTree *TopBinaryTree) InitTree() func(
+	data []string, column int) {
 	var isFirstRead = true
+	ThisTree.HeadNode = new(BinaryTree)
+	ThisTree.BinaryNode = ThisTree.HeadNode
+	rootNode := ThisTree.HeadNode
 
-	return func(data []string, column int) *BinaryTree {
+	return func(data []string, column int) {
 		CurrentNode := rootNode
 
 		if isFirstRead {
 			CurrentNode.data = data
 			isFirstRead = false
-			return rootNode
+			return
 		}
 
-		finish := false
-
-		for !finish {
+		for {
 			var ok bool
 			if CurrentNode.data[column] <= data[column] {
 				if CurrentNode.right == nil {
 					CurrentNode.right, ok = CurrentNode.setCurrentlyNode(
 						CurrentNode.right, data)
 					if ok {
-						return rootNode
+						return
 					}
 				} else {
 					CurrentNode = CurrentNode.right
@@ -67,7 +76,7 @@ func (ThisTree *TopBinaryTree) InitTree(
 					CurrentNode.left, ok = CurrentNode.setCurrentlyNode(
 						CurrentNode.left, data)
 					if ok {
-						return rootNode
+						return
 					}
 				} else {
 					CurrentNode = CurrentNode.left
@@ -75,7 +84,7 @@ func (ThisTree *TopBinaryTree) InitTree(
 
 			}
 		}
-		return rootNode
+
 	}
 
 }
@@ -88,7 +97,7 @@ func (Tree *TopBinaryTree) WriteOnlyInTree(Node *BinaryTree,
 	_ = countByteWrite
 
 	if isHead {
-		countByteWrite, err = output.Write([]byte(Node.StringifyData()))
+		countByteWrite, err = output.Write([]byte(Node.StringifyData(nil)))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -97,7 +106,7 @@ func (Tree *TopBinaryTree) WriteOnlyInTree(Node *BinaryTree,
 
 	if Node != nil && !isReverse {
 		Tree.WriteOnlyInTree(Node.left, isReverse, false, output)
-		countByteWrite, err = output.Write([]byte(Node.StringifyData()))
+		countByteWrite, err = output.Write([]byte(Node.StringifyData(nil)))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -105,7 +114,7 @@ func (Tree *TopBinaryTree) WriteOnlyInTree(Node *BinaryTree,
 	}
 	if Node != nil && isReverse {
 		Tree.WriteOnlyInTree(Node.right, isReverse, false, output)
-		countByteWrite, err = output.Write([]byte(Node.StringifyData()))
+		countByteWrite, err = output.Write([]byte(Node.StringifyData(nil)))
 		if err != nil {
 			log.Fatal(err)
 		}
