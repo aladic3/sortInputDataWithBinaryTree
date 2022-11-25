@@ -5,10 +5,32 @@ import (
 	"bufio"
 	"log"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"syscall"
 )
+
+func ReadDir(path string) chan string {
+	fnames := make(chan string)
+	go func() {
+		defer close(fnames)
+		err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				log.Fatalf(err.Error())
+			}
+
+			if !info.IsDir() {
+				fnames <- info.Name()
+			}
+			return nil
+		})
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}()
+	return fnames
+}
 
 func CheckFlags(isHead, isInputFromFile, isOutputToFile, isInputWithTree bool,
 	nameInputFile, nameOutputFile string,
