@@ -14,22 +14,23 @@ import (
 
 func ReadDir(path string) chan string {
 	fnames := make(chan string)
-	go func() {
-		defer close(fnames)
-		err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+	go func(ch chan string) {
+		defer close(ch)
+		var pathToFile string
+		filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				log.Fatalf(err.Error())
 			}
 
+			if info.IsDir() {
+				pathToFile = pathToFile + info.Name() + "\\"
+			}
 			if !info.IsDir() {
-				fnames <- info.Name()
+				ch <- path
 			}
 			return nil
 		})
-		if err != nil {
-			log.Fatalln(err)
-		}
-	}()
+	}(fnames)
 	return fnames
 }
 
@@ -171,7 +172,7 @@ func InputtingData(
 				}
 
 				// close input file
-				func() {
+				defer func() {
 					err = inputFile.Close()
 					if err != nil {
 						log.Fatal(err)
