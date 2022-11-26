@@ -89,11 +89,12 @@ func InputtingData(
 	sortNumber int,
 	isHead, isInputFromFile, isOutputToFile, isReverse, isInputWithTree bool,
 	nameInputFile, nameOutputFile string,
-	fnames <-chan string) *ClassTree.TopBinaryTree {
+	fnames <-chan string,
+	nChan int) *ClassTree.TopBinaryTree {
 	var (
-		inputStr      string
-		n             int
-		oneLine       []string
+		//inputStr      string
+		n int
+		//oneLine       []string
 		arrayLines    [][]string
 		inputHeadNode = new(ClassTree.TopBinaryTree)
 		inputTree     = new(ClassTree.TopBinaryTree)
@@ -130,49 +131,61 @@ func InputtingData(
 	//################
 	// inputting data
 
-	go func() {
-		for fname := range fnames {
-			scanner, inputFile := CheckFlags(isHead, isInputFromFile, isInputWithTree,
-				fname,
-				inputHeadNode)
+	// fan-out + processing
+	lines := make([]chan string, nChan)
+	for i := 0; i < nChan; i++ {
+		lines[i] = make(chan string)
+		go func(line chan string) {
+			defer close(line)
 
-			defer func() { // close input file
-				err = inputFile.Close()
-				if err != nil {
-					log.Fatal(err)
-				}
-			}()
+			for fname := range fnames {
+				//create scanner
+				scanner, inputFile := CheckFlags(isHead, isInputFromFile, isInputWithTree,
+					fname,
+					inputHeadNode)
+				// close input file
+				defer func() {
+					err = inputFile.Close()
+					if err != nil {
+						log.Fatal(err)
+					}
+				}()
 
-			for scanner.Scan() {
+				for scanner.Scan() {
 
-				inputStr = scanner.Text()
-				if scanner.Err() != nil {
-					log.Fatalf("Error of input! Err: %v", scanner.Err())
-				}
+					inputStr := scanner.Text()
+					if scanner.Err() != nil {
+						log.Fatalf("Error of input! Err: %v", scanner.Err())
+					}
 
-				if inputStr == "" {
-					break
-				}
+					if inputStr == "" {
+						break
+					}
 
-				oneLine = strings.Split(inputStr, ",")
+					oneLine := strings.Split(inputStr, ",")
 
-				if (n != 0 && n != len(oneLine)) || len(oneLine)-1 < sortNumber {
-					log.Fatalln("Error of count values!")
-				}
-				n = len(oneLine)
+					if (n != 0 && n != len(oneLine)) || len(oneLine)-1 < sortNumber {
+						log.Fatalln("Error of count values!")
+					}
+					n = len(oneLine)
 
-				// inputting data
-				if isInputWithTree {
-					initTree(oneLine, sortNumber)
-				} else {
-					arrayLines = append(arrayLines, oneLine)
+					// inputting data to chan
+					line <- inputStr
+
 				}
 
 			}
+		}(lines[i])
+	}
 
-		}
-	}()
+	// fan-in
 
+	// inputting data
+	if isInputWithTree {
+		initTree(oneLine, sortNumber)
+	} else {
+		arrayLines = append(arrayLines, oneLine)
+	}
 	//___________
 
 	//#######################
