@@ -12,15 +12,20 @@ import (
 	"syscall"
 )
 
-func ReadDir(path string) chan string {
+func ReadDir(path string, inputFileName string) chan string {
 	fnames := make(chan string)
-	if path == "" {
+	if path == "" && inputFileName == "" {
 		go func() {
 			defer close(fnames)
 			fnames <- path
 		}()
 		return fnames
 	}
+
+	if path == "" && inputFileName != "" {
+		path = inputFileName
+	}
+
 	go func(ch chan string) {
 		defer close(ch)
 		var pathToFile string
