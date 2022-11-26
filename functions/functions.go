@@ -248,15 +248,6 @@ func InputtingData(
 func SortArray(isReverse bool, sortNumber int, content <-chan string) [][]string {
 	var sortingArray [][]string
 	var buffer = make([][]string, 0, 1000)
-	//copyOfArray := make([][]string, len(array))
-	//copy(copyOfArray, array)
-	/*
-		if isFirstHeader {
-			sortingArray = copyOfArray[1:]
-		} else {
-			sortingArray = copyOfArray
-		}
-	*/
 
 	// read lines -> buffer
 	for line := range content {
