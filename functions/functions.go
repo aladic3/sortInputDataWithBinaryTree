@@ -146,13 +146,6 @@ func InputtingData(
 				scanner, inputFile := CheckFlags(isHead, isInputFromFile, isInputWithTree,
 					fname,
 					inputHeadNode)
-				// close input file
-				defer func() {
-					err = inputFile.Close()
-					if err != nil {
-						log.Fatal(err)
-					}
-				}()
 
 				for scanner.Scan() {
 
@@ -177,6 +170,13 @@ func InputtingData(
 
 				}
 
+				// close input file
+				func() {
+					err = inputFile.Close()
+					if err != nil {
+						log.Fatal(err)
+					}
+				}()
 			}
 		}(lines[i])
 	}
@@ -199,11 +199,13 @@ func InputtingData(
 		wg.Wait()
 	}()
 
-	// inputting data
+	// inputting data and sorting
 	if isInputWithTree {
-		initTree(strings.Split(<-allLines, ","), sortNumber)
+		for content := range allLines {
+			initTree(strings.Split(content, ","), sortNumber)
+		}
 	} else {
-		arrayLines = append(arrayLines, strings.Split(<-allLines, ","))
+		arrayLines = SortArray(isHead, isReverse, sortNumber, allLines)
 	}
 	//___________
 
@@ -217,7 +219,6 @@ func InputtingData(
 
 	}
 	if !isInputWithTree {
-		arrayLines = SortArray(isHead, isReverse, sortNumber, arrayLines)
 		for i := 0; i < len(arrayLines); i++ {
 			_, err = os.Stdout.Write([]byte(inputTree.BinaryNode.StringifyData(arrayLines[i])))
 			if err != nil {
@@ -229,17 +230,25 @@ func InputtingData(
 	return inputTree
 }
 
-func SortArray(isFirstHeader, isReverse bool, sortNumber int, array [][]string) [][]string {
-
+func SortArray(isFirstHeader, isReverse bool, sortNumber int, content <-chan string) [][]string {
 	var sortingArray [][]string
-	copyOfArray := make([][]string, len(array))
-	copy(copyOfArray, array)
+	var buffer = make([][]string, 0, 1000)
+	//copyOfArray := make([][]string, len(array))
+	//copy(copyOfArray, array)
+	/*
+		if isFirstHeader {
+			sortingArray = copyOfArray[1:]
+		} else {
+			sortingArray = copyOfArray
+		}
+	*/
 
-	if isFirstHeader {
-		sortingArray = copyOfArray[1:]
-	} else {
-		sortingArray = copyOfArray
+	// read lines -> buffer
+	for line := range content {
+		buffer = append(buffer, strings.Split(line, ","))
 	}
+
+	sortingArray = buffer
 
 	if !isReverse {
 		sort.Slice(sortingArray, func(i, j int) bool {
@@ -251,5 +260,5 @@ func SortArray(isFirstHeader, isReverse bool, sortNumber int, array [][]string) 
 		})
 	}
 
-	return copyOfArray
+	return sortingArray
 }
