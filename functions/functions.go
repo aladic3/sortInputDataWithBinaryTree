@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"syscall"
 )
 
@@ -100,7 +101,9 @@ func InputtingData(
 		inputTree     = new(ClassTree.TopBinaryTree)
 		err           error
 		initTree      = func([]string, int) {}
+		allLines      = make(chan string)
 	)
+	// init input func is input with tree algorithm
 	if isInputWithTree {
 		initTree = inputTree.InitTree()
 	}
@@ -179,12 +182,28 @@ func InputtingData(
 	}
 
 	// fan-in
+	go func() {
+		defer close(allLines)
+		wg := &sync.WaitGroup{}
+
+		for i := range lines {
+			wg.Add(1)
+			go func(ch chan string) {
+				defer wg.Done()
+				for line := range ch {
+					allLines <- line
+				}
+			}(lines[i])
+		}
+
+		wg.Wait()
+	}()
 
 	// inputting data
 	if isInputWithTree {
-		initTree(oneLine, sortNumber)
+		initTree(strings.Split(<-allLines, ","), sortNumber)
 	} else {
-		arrayLines = append(arrayLines, oneLine)
+		arrayLines = append(arrayLines, strings.Split(<-allLines, ","))
 	}
 	//___________
 
