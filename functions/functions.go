@@ -14,6 +14,13 @@ import (
 
 func ReadDir(path string) chan string {
 	fnames := make(chan string)
+	if path == "" {
+		go func() {
+			defer close(fnames)
+			fnames <- path
+		}()
+		return fnames
+	}
 	go func(ch chan string) {
 		defer close(ch)
 		var pathToFile string
@@ -56,16 +63,17 @@ func CheckFlags(isHead, isInputFromFile, isInputWithTree bool,
 			log.Fatalln(err.Error())
 		}
 
+		scanner = bufio.NewScanner(inputFile)
 	} else {
 		//input from console
 		_, err = os.Stdout.Write([]byte("Enter data:\n"))
 		if err != nil {
 			log.Fatalln(err.Error())
 		}
+		scanner = bufio.NewScanner(os.Stdin)
 	}
-	scanner = bufio.NewScanner(inputFile)
 
-	if isHead && isInputWithTree {
+	if isHead {
 
 		scanner.Scan()
 		if scanner.Err() != nil {
@@ -82,6 +90,7 @@ func CheckFlags(isHead, isInputFromFile, isInputWithTree bool,
 		}
 
 	}
+
 	//#########################
 
 	return scanner, inputFile
@@ -90,13 +99,11 @@ func CheckFlags(isHead, isInputFromFile, isInputWithTree bool,
 func InputtingData(
 	sortNumber int,
 	isHead, isInputFromFile, isOutputToFile, isReverse, isInputWithTree bool,
-	nameInputFile, nameOutputFile string,
+	nameOutputFile string,
 	fnames <-chan string,
 	nChan int) *ClassTree.TopBinaryTree {
 	var (
-		//inputStr      string
-		n int
-		//oneLine       []string
+		n             int
 		arrayLines    [][]string
 		inputHeadNode = new(ClassTree.TopBinaryTree)
 		inputTree     = new(ClassTree.TopBinaryTree)
@@ -172,12 +179,14 @@ func InputtingData(
 				}
 
 				// close input file
-				defer func() {
-					err = inputFile.Close()
-					if err != nil {
-						log.Fatal(err)
-					}
-				}()
+				if isInputFromFile {
+					defer func() {
+						err = inputFile.Close()
+						if err != nil {
+							log.Fatal(err)
+						}
+					}()
+				}
 			}
 		}(lines[i])
 	}
@@ -206,7 +215,7 @@ func InputtingData(
 			initTree(strings.Split(content, ","), sortNumber)
 		}
 	} else {
-		arrayLines = SortArray(isHead, isReverse, sortNumber, allLines)
+		arrayLines = SortArray(isReverse, sortNumber, allLines)
 	}
 	//___________
 
@@ -220,6 +229,9 @@ func InputtingData(
 
 	}
 	if !isInputWithTree {
+		if isHead {
+			inputHeadNode.WriteOnlyInTree(inputHeadNode.BinaryNode, isReverse, true, os.Stdout)
+		}
 		for i := 0; i < len(arrayLines); i++ {
 			_, err = os.Stdout.Write([]byte(inputTree.BinaryNode.StringifyData(arrayLines[i])))
 			if err != nil {
@@ -231,7 +243,7 @@ func InputtingData(
 	return inputTree
 }
 
-func SortArray(isFirstHeader, isReverse bool, sortNumber int, content <-chan string) [][]string {
+func SortArray(isReverse bool, sortNumber int, content <-chan string) [][]string {
 	var sortingArray [][]string
 	var buffer = make([][]string, 0, 1000)
 	//copyOfArray := make([][]string, len(array))
