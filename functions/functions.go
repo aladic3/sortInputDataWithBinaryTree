@@ -28,15 +28,12 @@ func ReadDir(path string, inputFileName string) chan string {
 
 	go func(ch chan string) {
 		defer close(ch)
-		var pathToFile string
+
 		filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				log.Fatalf(err.Error())
 			}
 
-			if info.IsDir() {
-				pathToFile = pathToFile + info.Name() + "\\"
-			}
 			if !info.IsDir() {
 				ch <- path
 			}
@@ -46,7 +43,7 @@ func ReadDir(path string, inputFileName string) chan string {
 	return fnames
 }
 
-func CheckFlags(isHead, isInputFromFile, isInputWithTree bool,
+func CheckSomeFlagsAndSetScanner(isHead, isInputFromFile bool,
 	nameInputFile string,
 	inputHeadNode *ClassTree.TopBinaryTree) (*bufio.Scanner, *os.File) {
 
@@ -156,7 +153,7 @@ func InputtingData(
 
 			for fname := range fnames {
 				//create scanner
-				scanner, inputFile := CheckFlags(isHead, isInputFromFile, isInputWithTree,
+				scanner, inputFile := CheckSomeFlagsAndSetScanner(isHead, isInputFromFile,
 					fname,
 					inputHeadNode)
 
@@ -185,7 +182,7 @@ func InputtingData(
 
 				// close input file
 				if isInputFromFile {
-					defer func() {
+					func() {
 						err = inputFile.Close()
 						if err != nil {
 							log.Fatal(err)
