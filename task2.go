@@ -7,7 +7,7 @@ import (
 )
 
 var fileNames chan string
-var nChanFiles int
+var nChanFiles = 1
 
 func main() {
 
@@ -41,6 +41,7 @@ func main() {
 	}
 
 	fileNames = functions.ReadDir(*dirName, *inputFileName, &nChanFiles)
+	//log.Printf("nChanFiles = %d", nChanFiles)
 	functions.InputtingAndSortingData(*sortNumber,
 		*isFirstHeader, isInputFromFile, isOutputToFile, *isReverse, isInputWithTree,
 		*outputFileName,

@@ -221,7 +221,7 @@ func InputtingAndSortingData(
 				scanner, inputFile := CheckSomeFlagsAndSetScanner(isHead, isInputFromFile,
 					fName,
 					inputHeadNode)
-				
+
 				ReadData(scanner, sortNumber, line, interrupt)
 
 				// close input file
