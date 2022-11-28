@@ -158,7 +158,7 @@ func InitOutputStdout(isOutputToFile bool, nameOutputFile string) func() {
 
 func ReadData(scanner *bufio.Scanner,
 	sortNumber int,
-	line chan string, interrupt <-chan struct{}) {
+	line chan []string, interrupt <-chan struct{}) {
 	var n int
 
 	for scanner.Scan() {
@@ -180,7 +180,7 @@ func ReadData(scanner *bufio.Scanner,
 
 		// inputting data to chan
 		select {
-		case line <- inputStr:
+		case line <- oneLine:
 		case <-interrupt:
 			break
 		}
@@ -199,7 +199,8 @@ func InputtingAndSortingData(
 		inputHeadNode = new(ClassTree.TopBinaryTree)
 		inputTree     = new(ClassTree.TopBinaryTree)
 		err           error
-		allLines      = make(chan string)
+		allLines      = make(chan []string)
+		done          chan struct{}
 	)
 
 	// init stdout output and close
@@ -210,10 +211,10 @@ func InputtingAndSortingData(
 	// inputting data
 
 	// fan-out + processing
-	lines := make([]chan string, nChan)
+	lines := make([]chan []string, nChan)
 	for i := 0; i < nChan; i++ {
-		lines[i] = make(chan string)
-		go func(line chan string) {
+		lines[i] = make(chan []string)
+		go func(line chan []string) {
 			defer close(line)
 
 			for fName := range fNames {
@@ -247,7 +248,7 @@ func InputtingAndSortingData(
 
 		for i := range lines {
 			wg.Add(1)
-			go func(ch chan string) {
+			go func(ch chan []string) {
 				defer wg.Done()
 				for line := range ch {
 					allLines <- line
@@ -260,9 +261,22 @@ func InputtingAndSortingData(
 
 	// inputting data and sorting
 	if isInputWithTree {
+		done = make(chan struct{})
 		initTree := inputTree.InitTree()
-		for content := range allLines {
-			initTree(strings.Split(content, ","), sortNumber)
+		for i := 0; i < nChan; i++ {
+			go func() {
+				for content := range allLines {
+					initTree(content, sortNumber)
+				}
+
+				select {
+				case <-done: // if close done
+				default: // if close allLines
+					close(done)
+				}
+
+			}()
+
 		}
 	} else {
 		arrayLines = SortArray(isReverse, sortNumber, allLines)
@@ -272,6 +286,7 @@ func InputtingAndSortingData(
 	//#######################
 	// write sorted date to Stdout
 	if isInputWithTree {
+		<-done
 		if inputHeadNode.BinaryNode != nil {
 			inputHeadNode.WriteOnlyInTree(inputHeadNode.BinaryNode, isReverse, true, os.Stdout)
 		}
@@ -293,13 +308,13 @@ func InputtingAndSortingData(
 	return inputTree
 }
 
-func SortArray(isReverse bool, sortNumber int, content <-chan string) [][]string {
+func SortArray(isReverse bool, sortNumber int, content <-chan []string) [][]string {
 	var sortingArray [][]string
 	var buffer = make([][]string, 0, 1000)
 
 	// read lines -> buffer
 	for line := range content {
-		buffer = append(buffer, strings.Split(line, ","))
+		buffer = append(buffer, line)
 	}
 
 	sortingArray = buffer
