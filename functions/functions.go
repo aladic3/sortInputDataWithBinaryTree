@@ -156,6 +156,38 @@ func InitOutputStdout(isOutputToFile bool, nameOutputFile string) func() {
 	}
 }
 
+func ReadData(scanner *bufio.Scanner,
+	sortNumber int,
+	line chan string, interrupt <-chan struct{}) {
+	var n int
+
+	for scanner.Scan() {
+		inputStr := scanner.Text()
+		if scanner.Err() != nil {
+			log.Fatalf("Error of input! Err: %v", scanner.Err())
+		}
+
+		if inputStr == "" {
+			break
+		}
+
+		oneLine := strings.Split(inputStr, ",")
+
+		if (n != 0 && n != len(oneLine)) || len(oneLine)-1 < sortNumber {
+			log.Fatalln("Error of count values!")
+		}
+		n = len(oneLine)
+
+		// inputting data to chan
+		select {
+		case line <- inputStr:
+		case <-interrupt:
+			break
+		}
+
+	}
+}
+
 func InputtingAndSortingData(
 	sortNumber int,
 	isHead, isInputFromFile, isOutputToFile, isReverse, isInputWithTree bool,
@@ -163,7 +195,6 @@ func InputtingAndSortingData(
 	fNames <-chan string, interrupt <-chan struct{},
 	nChan int) *ClassTree.TopBinaryTree {
 	var (
-		n             int
 		arrayLines    [][]string
 		inputHeadNode = new(ClassTree.TopBinaryTree)
 		inputTree     = new(ClassTree.TopBinaryTree)
@@ -190,8 +221,11 @@ func InputtingAndSortingData(
 				scanner, inputFile := CheckSomeFlagsAndSetScanner(isHead, isInputFromFile,
 					fName,
 					inputHeadNode)
+				
+				ReadData(scanner, sortNumber, line, interrupt)
+
 				// close input file
-				defer func() {
+				func() {
 					if isInputFromFile {
 						func() {
 							err = inputFile.Close()
@@ -201,33 +235,6 @@ func InputtingAndSortingData(
 						}()
 					}
 				}()
-
-				for scanner.Scan() {
-
-					inputStr := scanner.Text()
-					if scanner.Err() != nil {
-						log.Fatalf("Error of input! Err: %v", scanner.Err())
-					}
-
-					if inputStr == "" {
-						break
-					}
-
-					oneLine := strings.Split(inputStr, ",")
-
-					if (n != 0 && n != len(oneLine)) || len(oneLine)-1 < sortNumber {
-						log.Fatalln("Error of count values!")
-					}
-					n = len(oneLine)
-
-					// inputting data to chan
-					select {
-					case line <- inputStr:
-					case <-interrupt:
-						break
-					}
-
-				}
 
 			}
 		}(lines[i])
