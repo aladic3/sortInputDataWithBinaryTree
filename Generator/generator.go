@@ -1,4 +1,4 @@
-package main
+package Generator
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 
 const countLines = 1000000
 
-func main() {
+func MainGenerator() {
 	ch := make(chan string)
 	fileName := "GeneratedFile.csv"
 

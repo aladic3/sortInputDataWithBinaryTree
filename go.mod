@@ -1,11 +1,13 @@
-module sortInputData
+module sortInputDataWithBinaryTree
 
-go 1.19
+//require (
+//	sortInputDataWithBinaryTree/ClassTree v0.0.0
+//)
 
-require (
-    ClassTree v0.0.0 // indirect
-    functions v0.0.0
+replace (
+	sortInputDataWithBinaryTree/ClassTree => ./ClassTree
+	sortInputDataWithBinaryTree/FunctionsForSort => ./FunctionsForSort
+	sortInputDataWithBinaryTree/Generator => ./Generator
 )
 
-replace ClassTree => ./ClassTree
-replace functions => ./functions
+go 1.19

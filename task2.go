@@ -2,14 +2,35 @@ package main
 
 import (
 	"flag"
-	"functions"
 	"log"
+	"os"
+	"sortInputDataWithBinaryTree/FunctionsForSort"
 )
 
 var fileNames chan string
 var nChanFiles = 1
 
+func initLogs() func() {
+	var (
+		outLogFile *os.File
+		err        error
+	)
+	// init logs
+	if outLogFile, err = os.OpenFile("logs/logs.txt", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644); err != nil {
+		log.Fatalln(err)
+	}
+
+	log.SetOutput(outLogFile)
+	log.Println("Starting program...")
+	return func() {
+		outLogFile.Close()
+	}
+
+}
+
 func main() {
+	closeLogs := initLogs()
+	defer closeLogs()
 
 	var (
 		inputFileName    = flag.String("i", "", "Use a file with the name file-name as an input")
@@ -40,11 +61,11 @@ func main() {
 		log.Fatal("Don't use 2 options -i and -d!!!")
 	}
 
-	fileNames = functions.ReadDir(*dirName, *inputFileName, &nChanFiles)
-	//log.Printf("nChanFiles = %d", nChanFiles)
-	functions.InputtingAndSortingData(*sortNumber,
+	fileNames = FunctionsForSort.ReadDir(*dirName, *inputFileName, &nChanFiles)
+
+	FunctionsForSort.InputtingAndSortingData(*sortNumber,
 		*isFirstHeader, isInputFromFile, isOutputToFile, *isReverse, isInputWithTree,
 		*outputFileName,
-		fileNames, functions.Handler(), nChanFiles)
+		fileNames, FunctionsForSort.Handler(), nChanFiles)
 
 }

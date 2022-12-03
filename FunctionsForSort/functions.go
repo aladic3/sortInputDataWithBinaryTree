@@ -1,13 +1,13 @@
-package functions
+package FunctionsForSort
 
 import (
-	"ClassTree"
 	"bufio"
 	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"sort"
+	"sortInputDataWithBinaryTree/ClassTree"
 	"strings"
 	"sync"
 	"syscall"
@@ -21,7 +21,6 @@ func Handler() chan struct{} {
 		signal.Notify(sigs, syscall.SIGINT)
 		<-sigs
 	}()
-
 	return interrupt
 }
 
