@@ -13,6 +13,11 @@ import (
 	"syscall"
 )
 
+// ListSorter yet not working
+type ListSorter interface {
+	SortAndAddData(input <-chan []string)
+}
+
 func Handler() chan struct{} {
 	interrupt := make(chan struct{})
 	sigs := make(chan os.Signal)
