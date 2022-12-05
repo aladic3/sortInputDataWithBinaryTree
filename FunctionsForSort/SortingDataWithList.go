@@ -1,73 +1,87 @@
 package FunctionsForSort
 
+var (
+	info *infoOfSorting
+)
+
 type LstBuffer struct {
-	data           []string
-	head           *LstBuffer
-	next           *LstBuffer
+	data []string
+	next *LstBuffer
+}
+
+type infoOfSorting struct {
 	increaseOrLess bool // 1 if increases, 0 -- decreases
 	columnOfSort   int
+	head           *LstBuffer
 }
 
-func (node *LstBuffer) NewLstBuffer(columnOfSort int, increaseOrLess bool, startData <-chan []string) *LstBuffer {
-	var list *LstBuffer
-
-	if node == nil {
-		list = &LstBuffer{
-			data:           nil,
-			head:           nil,
-			next:           nil,
-			increaseOrLess: increaseOrLess, // 1 if increases, 0 -- decreases
-			columnOfSort:   columnOfSort,
-		}
-		list.head = list
-	} else {
-		list = &LstBuffer{
-			data:           nil,
-			head:           node.head,
-			next:           node.head.next,
-			increaseOrLess: increaseOrLess, // 1 if increases, 0 -- decreases
-			columnOfSort:   columnOfSort,
-		}
-	}
-
-	go func() { list.data = <-startData }()
-
-	return list
-}
-
-func (sortingLst *LstBuffer) setHeadNode() {
-	sortingLst = sortingLst.head
-}
-
-func (sortingLst *LstBuffer) addDataToLstIncrease(data []string) {
-	var columnOfSort = sortingLst.columnOfSort
-	var chanForAdd = make(chan []string)
-	var newNode = LstBuffer.NewLstBuffer()
-
-	defer close(chanForAdd)
-	defer sortingLst.setHeadNode()
-
-	if sortingLst.data[columnOfSort] < data[columnOfSort] {
-
+func NewLstBuffer() *LstBuffer {
+	return &LstBuffer{
+		data: nil,
+		next: nil,
 	}
 }
 
-func (sortingLst *LstBuffer) SortAndAddData(input <-chan []string) {
-	var tempNode = sortingLst
+func newNode(data []string) *LstBuffer {
+	return &LstBuffer{
+		data: data,
+		next: nil,
+	}
+}
 
-	if sortingLst.increaseOrLess {
-		for data := range input {
-			tempNode.addDataToLstIncrease(data)
+func (*LstBuffer) recursiveAdd(tempNode, createdNode *LstBuffer, parameters *infoOfSorting) (result *LstBuffer) {
+	result = tempNode.next
+	if tempNode != nil {
+		if tempNode.data[parameters.columnOfSort] < createdNode.data[parameters.columnOfSort] {
+			tempNode.next = createdNode.recursiveAdd(tempNode.next, createdNode, parameters)
+		} else {
+			if tempNode == parameters.head {
+				parameters.head = createdNode
+			}
+			createdNode.next = tempNode
+			result = createdNode
 
 		}
+	} else {
+		result = createdNode
+	}
+
+	return
+}
+
+func (sortingLst *LstBuffer) addDataToLstIncrease(data []string, parameters *infoOfSorting) {
+	if parameters.head.data == nil {
+		parameters.head.data = data
+		return
+	}
+
+	var (
+		createdNode = newNode(data)
+		tempNode    = parameters.head
+	)
+
+	sortingLst.recursiveAdd(tempNode, createdNode, parameters)
+
+}
+
+func (sortingLst *LstBuffer) SortAndAddData(input <-chan []string, columnOfSort int, increaseOrLess bool) {
+	if info == nil {
+		info = &infoOfSorting{
+			increaseOrLess: increaseOrLess,
+			columnOfSort:   columnOfSort,
+			head:           sortingLst,
+		}
+	}
+	parameters := info
+
+	for data := range input {
+		sortingLst.addDataToLstIncrease(data, parameters)
+	}
+
+	if parameters.increaseOrLess {
 
 	} else {
-		for data := range input {
 
-			tempNode = sortingLst.head
-
-			tempNode = sortingLst.head
-		}
 	}
 
 }
